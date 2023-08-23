@@ -1,0 +1,7 @@
+CC=gcc
+windows:
+	$(CC) ./src/encode.c -o .encode.exe
+	$(CC) ./src/stegan.c -o stegan.exe
+linux:
+	$(CC) ./src/stegan.c -o stegan
+	$(CC) ./src/stegan.c -o encode

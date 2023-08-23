@@ -2,7 +2,7 @@
 #include<stdio.h>
 #include<windows.h>
 #define _CRT_SECURE_NO_WARNINGS
-char END[] = "WEnD";
+
 char magic[4] = { 0x57,0x41,0x56,0x45 };
 char H[2] = {'.'};
 void *ProgressBar()
@@ -100,8 +100,12 @@ FILE *src = fopen(argv[2], "rb"); //打开需要隐藏的文件
     }
 int SEEK_DATA = 0x2c;//data区初始位置
 fseek(src, 0, SEEK_END);
-long long int SLen = ftell(src);  //SLen:源文件大小
+unsigned long long int SLen = ftell(src);  //SLen:源文件大小
 fseek(src, 0, SEEK_SET);
+
+char buf[8];
+memcpy(&buf,&SLen,8);
+
 fseek(tar,0,SEEK_END);
 long long int TLen = ftell(tar);
 fseek(tar, 0, SEEK_SET);
@@ -111,28 +115,34 @@ unsigned long long int Total=SEEK_DATA+_Pseek*SLen;
      printf("The file is too big");
     return -1;
     }
-    printf("The end of file is %d\n",Total);
+    printf("The size of file is %d          The end of file is %d\n",SLen,Total);
 char *Bsrc = (char *)malloc(SLen);
-//pthread_create(&thread,NULL,);
+
 	for (int i = 0; i<SLen; i++)
 	{
 		fread(Bsrc + i, 1, 1, src); //读入需要隐写的文件
 	}
 
 
-	fseek(tar, SEEK_DATA, SEEK_SET);
+	for(int i=0;i<8;i++)//写入源文件的大小
+    {
+        fseek(tar, SEEK_DATA, SEEK_SET);
+        fwrite(&buf[i],1,1,tar);
+        SEEK_DATA+=_Pseek;
+
+    }
 	for (int i = 0; i<SLen; i++)//根据SEEK偏移量写入文件
 	{
 		fseek(tar, SEEK_DATA, SEEK_SET);
 		fwrite(Bsrc + i, 1, 1, tar);
 		SEEK_DATA+=_Pseek;
 	}
-	for (int i = 0; i<4; i++)//写入结束标志
+	/*for (int i = 0; i<4; i++)//写入结束标志
 	{
 		fseek(tar, SEEK_DATA, SEEK_SET);
 		fwrite(&END[i], 1, 1, tar);
 		SEEK_DATA += _Pseek;
-	}
+	}*/
     printf("The task is finished\n");
 	system("pause");
 	return 0;
